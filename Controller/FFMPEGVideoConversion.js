@@ -6,6 +6,13 @@ const pathdir = require('path');
 const fs = require('fs');
 const {glob} = require('glob');
 
+/*
+notes - paths setted to convertion and deletion needs to specify clearly
+codes needs to uncomment after made the changes
+lines - definition
+83 - files will be downloaded from s3 bucket(videofile-url variable) and pasted on path(path_video-path variable) 
+277 - deletes the downloaded source file after completed the conversion
+*/
 
 class FFMPEGVideoConversion {
 
@@ -24,7 +31,7 @@ class FFMPEGVideoConversion {
             console.log("\n\n Add Valid Thumbnail Width for Mobile/Desktop in Admin Settings!! \n\n");
             return;
         }
-        var mediaId = 1;
+        var mediaId = 91;
         if (mediaId) {
 
             var [media] = await knex.select('*').from('media').where('type', '=', 'video')
@@ -72,11 +79,11 @@ class FFMPEGVideoConversion {
             // Log::channel('command')->info("Update ID : ".$media->updates_id);
 
             try {
-                const videofile = 'C:\\xampp\\htdocs\\templar_influencer\\public\\videoConversion\\'//fetching the file from url
-                const localFile = config.path.conversion;
-                const mediaName = '7651d2dc0d4f721696411072icweo8cpgnnwsrphnei7.mp4';
+                const videofile = '/var/www/html/templar_influencer/public/uploads/updates/videos/'//fetching the file from url
+                const localFile = config.path.videos;
+                const mediaName = '7651fc8f9af5601696581881b24ob17wnysrikcpjsjq.mp4';
                 const file = videofile+mediaName;
-                const path_video  = config.path.videos;//downloaded file will be pasted here
+                // const path_video  = config.path.conversion;//downloaded file will be pasted here
                 const escapeShellArg = arg => `'${arg.replace(/'/g, "'\\''")}'`;
                 
                 //download file from s3 bucket using aws--cli command
@@ -89,7 +96,7 @@ class FFMPEGVideoConversion {
                 //Taking the Original File Name without Extension
                 const filename = pathdir.parse(file).name;
                 //Local Path without extension of filename to generate m3u8 extension in FFMPEG command
-                const newfile = pathdir.parse(file).dir;
+                const newfile = localFile+filename;
 
                 const command = `ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 "${file}"`;
                 const output = execSync(command, {encoding: 'utf-8'}).trim();
@@ -125,7 +132,6 @@ class FFMPEGVideoConversion {
                     let url, fontSize, opacity, fontSize_480;
                     if(setting.watermark == "on"){
                         const [userName] = await knex.select('username').from('creators').where('id', '=', media.user_id).pluck('username');
-                        let fontSize, fontSize_480;
                         if(width >= 720) {
                             fontSize = 24;
                             fontSize_480 = 18;
@@ -209,7 +215,7 @@ class FFMPEGVideoConversion {
 
                             }
                                                         
-                            $cmd = watermarkCmd +" -c:v libx264 -preset veryslow -crf 18 -c:a copy -f hls -hls_time 2 -hls_playlist_type vod -hls_flags independent_segments -hls_segment_type mpegts -hls_segment_filename "+ escapeShellArg(newfile) +"_%v_%02d.ts -master_pl_name "+ escapeShellArg(filename) +".m3u8 "+ escapeShellArg(newfile) +"_%v.m3u8";
+                            cmd = watermarkCmd +" -c:v libx264 -preset veryslow -crf 18 -c:a copy -f hls -hls_time 2 -hls_playlist_type vod -hls_flags independent_segments -hls_segment_type mpegts -hls_segment_filename "+ escapeShellArg(newfile) +"_%v_%02d.ts -master_pl_name "+ escapeShellArg(filename) +".m3u8 "+ escapeShellArg(newfile) +"_%v.m3u8";
 
                         } else {
 
@@ -223,16 +229,15 @@ class FFMPEGVideoConversion {
                                 
                                 cmd = " -filter_complex \"[0:v]scale=w=-2:h=480"+ codecConversionCmd + watermarkCmd +"[vout]\" -map [vout] -c:v libx264 -x264-params \"nal-hrd=cbr:force-cfr=1\" -b:v 0.5M -maxrate:v 0.5M -minrate:v 0.5M -bufsize:v 0.5M -preset veryslow -crf 18 -g 48 -sc_threshold 0 -keyint_min 48 "+ audio +" -f hls -hls_time 2 -hls_playlist_type vod -hls_flags independent_segments -hls_segment_type mpegts -hls_segment_filename "+ escapeShellArg(newfile) +"_%v_%02d.ts -master_pl_name "+ escapeShellArg(filename) +".m3u8 "+ escapeShellArg(newfile) +"_%v.m3u8";
 
-                            } else if($width >= 480 && $height < 480) {
+                            } else if(width >= 480 && height < 480) {
 
-                                $cmd = " -filter_complex \"[0:v]scale=w=480:h=-2"+ codecConversionCmd + watermarkCmd +"[vout]\" -map [vout] -c:v libx264 -x264-params \"nal-hrd=cbr:force-cfr=1\" -b:v 0.5M -maxrate:v 0.5M -minrate:v 0.5M -bufsize:v 0.5M -preset veryslow -crf 18 -g 48 -sc_threshold 0 -keyint_min 48 "+ audio +" -f hls -hls_time 2 -hls_playlist_type vod -hls_flags independent_segments -hls_segment_type mpegts -hls_segment_filename "+ escapeShellArg(newfile) +"_%v_%02d.ts -master_pl_name "+ escapeShellArg(filename) +".m3u8 "+ escapeShellArg(newfile) +"_%v.m3u8";
+                                cmd = " -filter_complex \"[0:v]scale=w=480:h=-2"+ codecConversionCmd + watermarkCmd +"[vout]\" -map [vout] -c:v libx264 -x264-params \"nal-hrd=cbr:force-cfr=1\" -b:v 0.5M -maxrate:v 0.5M -minrate:v 0.5M -bufsize:v 0.5M -preset veryslow -crf 18 -g 48 -sc_threshold 0 -keyint_min 48 "+ audio +" -f hls -hls_time 2 -hls_playlist_type vod -hls_flags independent_segments -hls_segment_type mpegts -hls_segment_filename "+ escapeShellArg(newfile) +"_%v_%02d.ts -master_pl_name "+ escapeShellArg(filename) +".m3u8 "+ escapeShellArg(newfile) +"_%v.m3u8";
 
                             }
                         }
                     }
 
                     const ffmpegCmd = "ffmpeg -i " + escapeShellArg(file) + cmd;
-                    
                     let ffmpegOutput = execSync(ffmpegCmd, {encoding: 'utf-8'}).trim();
                     
                     // Log::channel('command')->info('FFMPEG Command : '.$ffmpegCmd);
@@ -267,11 +272,11 @@ class FFMPEGVideoConversion {
 
                         // Log::channel('command')->info('Thumbnail Resize Command Mobile: '.$thumbnailResizeCmd1);
                         // Log::channel('command')->info('Thumbnail Resize Command Desktop: '.$thumbnailResizeCmd2);
-                    
-                        fs.unlink(generatedThumb);
+
+                        // fs.unlinkSync(generatedThumb);//deletes the generated thumbnail
                 }
 
-                fs.unlink(localFile+mediaName);
+                // fs.unlinkSync(videofile+mediaName);//deletes the source file used to convert
 
                 // Get all the files in the directory that match the pattern
                 let files = glob.sync(`${localFile}/${filename}`);
@@ -281,7 +286,7 @@ class FFMPEGVideoConversion {
                 files.forEach(file => {
                     
                     // Define the destination file path
-                    let destinationFilePath = path_video + mediaName;
+                    let destinationFilePath = path_video + path.basename(mediaName);
 
                     if(pathdir.extname(file) == 'm3u8') {
                         m3u8Count +=1;
@@ -292,14 +297,22 @@ class FFMPEGVideoConversion {
                     }
 
                     // Move the file
-                        try {
-                        fs.copyFile(file, destinationFilePath);
-                          console.log('File has been copied successfully.');
-                        } catch (err) {
-                          console.error(`Error: ${err}`);
+                    fs.readFile(file, (err, data) => {
+                        if (err) {
+                          console.error('Error reading source file:', err);
+                        } else {
+                          // Write the contents to the destination file
+                          fs.writeFile(destinationFilePath, data, (err) => {
+                            if (err) {
+                              console.error('Error writing to destination file:', err);
+                            } else {
+                              console.log('File copied successfully.');
+                            }
+                          });
                         }
+                      });
 
-                    fs.unlink(localFile+mediaName);
+                    fs.unlink(localFile+path.basename(mediaName));
                 });
 
                 if(thumbnail){
@@ -319,16 +332,17 @@ class FFMPEGVideoConversion {
 
             } catch (error) {
                 console.log(error);
+                return;
                 // Log::channel('command')->error($e->getMessage(), ['exception' => $e]);
             }
-            if(await knex('media').select('conversion_status').where({id:mediaId}) == '1') {
+            if(await knex('media').select('conversion_status').where({id:mediaId}) == '91') {
                 await knex('media').where('id', '=', media.id).update({conversion_status : '3'});
 
                 // Log::channel('command')->error('Status -> Failed : Unidentified Error!!');
             }
             var datetime = new Date();
             await knex('media').where('id', '=', media.id).update({conversion_end_time : datetime});
-
+console.log(`Process Completed : Check Conversion Status for Media ID ->${mediaId}`)
             // Log::channel('command')->info('Process Completed : Check Conversion Status for Media ID -> '.$media->id);
 
         } else {
