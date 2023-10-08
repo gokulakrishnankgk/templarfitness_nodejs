@@ -11,6 +11,7 @@
   "keywords": [],
   "description": "",
   "dependencies": {
+    "@slack/webhook": "^7.0.0",
     "aws-sdk": "^2.1463.0",
     "body-parser": "^1.20.2",
     "child_process": "^1.0.2",
