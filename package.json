@@ -11,8 +11,9 @@
   "keywords": [],
   "description": "",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.427.0",
     "@slack/webhook": "^7.0.0",
-    "aws-sdk": "^2.1463.0",
+    "aws-sdk": "^2.1472.0",
     "body-parser": "^1.20.2",
     "child_process": "^1.0.2",
     "date-and-time": "^3.0.3",
@@ -22,7 +23,6 @@
     "knex": "^2.5.1",
     "moment": "^2.29.4",
     "mysql": "^2.18.1",
-    "nodemon": "^3.0.1",
-    "winston": "^3.10.0"
+    "nodemon": "^3.0.1"
   }
 }
